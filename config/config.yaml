@@ -23,6 +23,7 @@ train:
 clearml:
   project: template
   task: template-training
+  tags: 
 
 log:
   clearml: false

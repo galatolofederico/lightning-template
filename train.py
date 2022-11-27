@@ -17,7 +17,7 @@ def train(cfg):
     
     if cfg.log.clearml:
         from clearml import Task
-        Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task)
+        Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task, tags=cfg.clearml.tags)
 
     seed_everything(cfg.train.seed)
     
