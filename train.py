@@ -5,23 +5,27 @@ from lightning_lite.utilities.seed import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback
 import hydra
 
+_clearm = True
+try:
+    from clearml import Task
+except:
+    _clearm = False
+
 from src.sequential_dataset import SequentialTemplateDataset
 from src.model import TemplateModel
 
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def train(cfg):
+    if cfg.log.clearml:
+        assert _clearm, "Please install clearml"
+        task = Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task, tags=cfg.clearml.tags)
+
     if cfg.train.seed < 0:
         random_data = os.urandom(4)
         seed = int.from_bytes(random_data, byteorder="big")
         cfg.train.seed = seed
     
-    if cfg.log.clearml:
-        from clearml import Task
-        Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task, tags=cfg.clearml.tags)
-
     seed_everything(cfg.train.seed)
-    
-    loggers = list()
     callbacks = list()
 
     last_checkpoint_callback = ModelCheckpoint(
@@ -69,7 +73,6 @@ def train(cfg):
     )
 
     trainer = pytorch_lightning.Trainer(
-        logger=loggers,
         callbacks=callbacks,
         accelerator=cfg.train.accelerator,
         devices=cfg.train.gpus,
