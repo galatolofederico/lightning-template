@@ -3,3 +3,4 @@ __pycache__/
 
 /outputs
 /lightning_logs
+/checkpoints
