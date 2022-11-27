@@ -15,6 +15,10 @@ def train(cfg):
         seed = int.from_bytes(random_data, byteorder="big")
         cfg.train.seed = seed
     
+    if cfg.log.clearml:
+        from clearml import Task
+        Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task)
+
     seed_everything(cfg.train.seed)
     
     loggers = list()

@@ -15,7 +15,14 @@ model:
 train:
   accelerator: gpu
   gpus: 1
-  epochs: 1000
+  epochs: 100
   batch_size: 32
   lr: 0.001
   seed: -1
+
+clearml:
+  project: template
+  task: template-training
+
+log:
+  clearml: false
