@@ -14,6 +14,8 @@ except:
 from src.sequential_dataset import SequentialTemplateDataset
 from src.model import TemplateModel
 
+
+
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def train(cfg):
     if cfg.log.clearml:
@@ -24,6 +26,11 @@ def train(cfg):
             tags=cfg.clearml.tags,
             output_uri=cfg.clearml.output_uri,
         )
+        if not cfg.clearml.model_upload:
+            from clearml.binding.frameworks import WeightsFileHandler
+            def callback_function(operation_type, model_info):
+                return None
+            WeightsFileHandler.add_pre_callback(callback_function)
 
     if cfg.train.seed < 0:
         random_data = os.urandom(4)
@@ -33,29 +40,30 @@ def train(cfg):
     seed_everything(cfg.train.seed)
     callbacks = list()
 
-    last_checkpoint_callback = ModelCheckpoint(
-        filename="last",
-        save_last=True,
-    )
-    min_loss_checkpoint_callback = ModelCheckpoint(
-        monitor="train/loss",
-        filename="min-loss",
-        save_top_k=1,
-        mode="min",
-    )
-    min_val_loss_checkpoint_callback = ModelCheckpoint(
-        monitor="validation/loss",
-        filename="min-val-loss",
-        save_top_k=1,
-        mode="min",
-    )
+    if cfg.train.checkpoint:
+        last_checkpoint_callback = ModelCheckpoint(
+            filename="last",
+            save_last=True,
+        )
+        min_loss_checkpoint_callback = ModelCheckpoint(
+            monitor="train/loss",
+            filename="min-loss",
+            save_top_k=1,
+            mode="min",
+        )
+        min_val_loss_checkpoint_callback = ModelCheckpoint(
+            monitor="validation/loss",
+            filename="min-val-loss",
+            save_top_k=1,
+            mode="min",
+        )
 
-    callbacks.extend([
-        last_checkpoint_callback,
-        min_loss_checkpoint_callback,
-        min_val_loss_checkpoint_callback
-    ])
-    
+        callbacks.extend([
+            last_checkpoint_callback,
+            min_loss_checkpoint_callback,
+            min_val_loss_checkpoint_callback
+        ])
+        
     train_dataset = SequentialTemplateDataset(cfg, "train")
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset,
