@@ -18,7 +18,12 @@ from src.model import TemplateModel
 def train(cfg):
     if cfg.log.clearml:
         assert _clearm, "Please install clearml"
-        task = Task.init(project_name=cfg.clearml.project, task_name=cfg.clearml.task, tags=cfg.clearml.tags)
+        task = Task.init(
+            project_name=cfg.clearml.project,
+            task_name=cfg.clearml.task,
+            tags=cfg.clearml.tags,
+            output_uri=cfg.clearml.output_uri,
+        )
 
     if cfg.train.seed < 0:
         random_data = os.urandom(4)

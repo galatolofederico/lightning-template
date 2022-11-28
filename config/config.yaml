@@ -23,6 +23,7 @@ train:
 clearml:
   project: template
   task: template-training
+  output_uri: s3://s3.galatolo.xyz:443/clearml
   tags: 
 
 log:
