@@ -19,13 +19,15 @@ train:
   batch_size: 32
   lr: 0.001
   seed: -1
-  checkpoint: false
+  checkpoints: false
+  enable_checkpoints: false
+  save: ""
 
 clearml:
   project: template
   task: template-training
   output_uri: s3://s3.galatolo.xyz:443/clearml
-  model_upload: false
+  save: false
   tags: 
 
 log:

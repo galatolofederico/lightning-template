@@ -2,7 +2,7 @@ import os
 import torch
 import pytorch_lightning
 from lightning_lite.utilities.seed import seed_everything
-from pytorch_lightning.callbacks import ModelCheckpoint, Callback
+from pytorch_lightning.callbacks import ModelCheckpoint
 import hydra
 
 _clearm = True
@@ -15,7 +15,6 @@ from src.sequential_dataset import SequentialTemplateDataset
 from src.model import TemplateModel
 
 
-
 @hydra.main(version_base=None, config_path="config", config_name="config")
 def train(cfg):
     if cfg.log.clearml:
@@ -26,11 +25,6 @@ def train(cfg):
             tags=cfg.clearml.tags,
             output_uri=cfg.clearml.output_uri,
         )
-        if not cfg.clearml.model_upload:
-            from clearml.binding.frameworks import WeightsFileHandler
-            def callback_function(operation_type, model_info):
-                return None
-            WeightsFileHandler.add_pre_callback(callback_function)
 
     if cfg.train.seed < 0:
         random_data = os.urandom(4)
@@ -40,7 +34,7 @@ def train(cfg):
     seed_everything(cfg.train.seed)
     callbacks = list()
 
-    if cfg.train.checkpoint:
+    if cfg.train.checkpoints:
         last_checkpoint_callback = ModelCheckpoint(
             filename="last",
             save_last=True,
@@ -90,10 +84,16 @@ def train(cfg):
         accelerator=cfg.train.accelerator,
         devices=cfg.train.gpus,
         max_epochs=cfg.train.epochs,
+        enable_checkpointing=cfg.train.enable_checkpoints
     )
     
     trainer.fit(model, train_dataloader, validation_dataloader)
 
+    if cfg.train.save != "":
+        trainer.save_checkpoint(cfg.train.save)
+
+    if cfg.log.clearml and cfg.clearml.save:
+        torch.save(trainer.model, "/tmp/model.pth")
 
 if __name__ == "__main__":
     train()
