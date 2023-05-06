@@ -1,5 +1,6 @@
 import os
 import torch
+import random
 import pytorch_lightning
 from lightning_lite.utilities.seed import seed_everything
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -8,6 +9,7 @@ import hydra
 _clearm = True
 try:
     from clearml import Task
+    from clearml import Logger
 except:
     _clearm = False
 
@@ -19,12 +21,28 @@ from src.model import TemplateModel
 def train(cfg):
     if cfg.log.clearml:
         assert _clearm, "Please install clearml"
+        seed = cfg.seed if cfg.seed >= 0 else random.randint(0, 2**32 - 1)
+        cfg.seed = seed
+        print("Seed:", seed)
+        
+        Task.add_requirements("./requirements.txt")
+        Task.set_random_seed(seed)
+        
         task = Task.init(
             project_name=cfg.clearml.project,
             task_name=cfg.clearml.task,
             tags=cfg.clearml.tags,
             output_uri=cfg.clearml.output_uri,
         )
+        Logger.current_logger().set_default_upload_destination(cfg.clearml.media_uri)
+
+        queue = os.environ.get("CLEARML_QUEUE", False) 
+        if queue:
+            task.close()
+            task.reset()
+            Task.enqueue(task, queue_name=queue)
+            print(f"Task enqueued on {queue}")
+            exit()
 
     if cfg.train.seed < 0:
         random_data = os.urandom(4)

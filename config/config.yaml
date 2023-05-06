@@ -12,6 +12,8 @@ model:
   hidden_layers: 2
   hidden_size: 100
 
+seed: -1
+
 train:
   accelerator: auto
   gpus: 1
@@ -27,6 +29,7 @@ clearml:
   project: template
   task: template-training
   output_uri: s3://s3.galatolo.xyz:443/clearml
+  media_uri: s3://s3.galatolo.xyz:443/clearml-media
   save: false
   tags: 
 
